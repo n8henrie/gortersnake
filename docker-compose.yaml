@@ -1,0 +1,7 @@
+version: '3'
+services:
+    web:
+        restart: on-failure
+        build: .
+        ports:
+            - 9433:9433
