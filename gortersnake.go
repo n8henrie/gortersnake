@@ -19,21 +19,17 @@ type Position struct {
 	X, Y int
 }
 
-type moveData struct {
-	Game struct {
-		Id      string
-		Ruleset struct {
-			Name, Version string
-		}
-		Timeout int
-	}
+type Data struct {
+	Game  Game
 	Turn  int
-	Board struct {
-		Height, Width int
-		Food, Hazards []Position
-		Snakes        []Snake
-	}
-	You Snake
+	Board Board
+	You   Snake
+}
+
+type Board struct {
+	Height, Width int
+	Food, Hazards []Position
+	Snakes        []Snake
 }
 
 type Snake struct {
@@ -59,8 +55,8 @@ func moveHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var m moveData
-	err := json.NewDecoder(r.Body).Decode(&m)
+	var d Data
+	err := json.NewDecoder(r.Body).Decode(&d)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -82,10 +78,39 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	writeAsJson(w, SnakeInfo)
 }
 
+type Game struct {
+	id      string
+	ruleset Ruleset
+	timeout int
+}
+
+type Ruleset struct {
+	name, version string
+}
+
+func startEndHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	var d Data
+	err := json.NewDecoder(r.Body).Decode(&d)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// No response necessary
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", homeHandler)
 	mux.HandleFunc("/move", moveHandler)
+	mux.HandleFunc("/start", startEndHandler)
+	mux.HandleFunc("/end", startEndHandler)
 
 	log.Fatal(http.ListenAndServe(":9433", mux))
 }
