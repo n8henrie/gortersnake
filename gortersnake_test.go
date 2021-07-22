@@ -1,13 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
-func TestPost(t *testing.T) {
+func TestMove(t *testing.T) {
 	exampleMove := `{
   "game": {
     "id": "game-00fe20da-94ad-11ea-bb37",
@@ -91,19 +92,35 @@ func TestPost(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
-	expected := `{
-  "move": "up",
-  "shout": "I guess I'll go up then."
-}`
-	_ = expected
 
-	blank := `http.ListenAndServetr := rr.Body.String()
-	if diff := cmp.Diff(expected, str); diff != "" {
-		t.Errorf("%s: mismatch (-want +got):\n%s", "", diff)
+	var resp = map[string]string{}
+	if err := json.NewDecoder(recorder.Body).Decode(&resp); err != nil {
+		t.Errorf("Bad response: got %v", resp)
 	}
-	if str != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}http.ListenAndServe`
-	_ = blank
+	if resp["move"] == "" {
+		t.Errorf("Bad response: expected key `\"move\"`, got %v", resp)
+	}
+}
+
+func TestHome(t *testing.T) {
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	recorder := httptest.NewRecorder()
+	handler := http.HandlerFunc(homeHandler)
+	handler.ServeHTTP(recorder, req)
+	if status := recorder.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	var resp = map[string]string{}
+	if err := json.NewDecoder(recorder.Body).Decode(&resp); err != nil {
+		t.Errorf("Bad response: got %v", resp)
+	}
+	if resp["author"] != "n8henrie" {
+		t.Errorf("Bad response: expected author `\"n8henrie\"`, got %v", resp)
+	}
 }
