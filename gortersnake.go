@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 )
 
 var SnakeInfo = map[string]string{
@@ -112,5 +113,9 @@ func main() {
 	mux.HandleFunc("/start", startEndHandler)
 	mux.HandleFunc("/end", startEndHandler)
 
-	log.Fatal(http.ListenAndServe(":9433", mux))
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		panic("PORT environment variable is required but unset")
+	}
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 }

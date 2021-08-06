@@ -1,7 +1,9 @@
 version: '3'
 services:
-    web:
+    webapp:
         restart: on-failure
         build: .
         ports:
-            - 9433:9433
+            - "${PORT}:${PORT}"
+        environment:
+            - "PORT=${PORT}"
